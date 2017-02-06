@@ -19,7 +19,7 @@ LOG_HEADER = "[CRAWLER]"
 url_count = 0 if not os.path.exists("successful_urls.txt") else (len(open("successful_urls.txt").readlines()) - 1)
 if url_count < 0:
     url_count = 0
-MAX_LINKS_TO_DOWNLOAD = 20000
+MAX_LINKS_TO_DOWNLOAD = 200
 
 @Producer(ProducedLink)
 @GetterSetter(OneUnProcessedGroup)
@@ -104,7 +104,7 @@ def is_valid(url):
         return False
 
     # Trying to handle the dynamic PHP from the UCI calender
-    if "calandar" in parsed:
+    if "calendar" in parsed:
         if "month" in parsed:
             return False;
         if "day" in parsed:
