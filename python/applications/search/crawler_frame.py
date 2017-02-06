@@ -99,26 +99,35 @@ def is_valid(url):
 
     This is a great place to filter out crawler traps.
     '''
+
+    # Parses URL
     parsed = urlparse(url)
+
+    # Sets up parse search
+    parsedQuerySearch = parse_qs(parsed.query)
+
+    #Gets the host name
+    hostName = parsed.hostname
+
     if parsed.scheme not in set(["http", "https"]):
         return False
 
     # Trying to handle the dynamic PHP from the UCI calender
-    if "calendar" in parsed:
-        if "month" in parsed:
+    if "calendar" in parsedQuerySearch:
+        if "month" in parsedQuerySearch:
             return False;
-        if "day" in parsed:
+        if "day" in parsedQuerySearch:
             return False;
-        if "year" in parsed:
+        if "year" in parsedQuerySearch:
             return False;
-
-        # Too much of the same stuff to crawl here.
-        #if "fromDate" in parsed:
-            #return False;
 
         # Ignore anything with broken link tags left in the URL
-        if "<a>" or "<\a>" in parsed:
+        if "<a>" or "<\a>" in parsedQuerySearch:
             return False;
+
+    # https://ganglia.ics.uci.edu/ (calendar, but not sure if hit)
+    if "ganglia" in hostName:
+        return False;
 
     try:
         return ".ics.uci.edu" in parsed.hostname \
