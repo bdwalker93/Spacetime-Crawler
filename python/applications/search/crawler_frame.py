@@ -19,7 +19,7 @@ LOG_HEADER = "[CRAWLER]"
 url_count = 0 if not os.path.exists("successful_urls.txt") else (len(open("successful_urls.txt").readlines()) - 1)
 if url_count < 0:
     url_count = 0
-MAX_LINKS_TO_DOWNLOAD = 20
+MAX_LINKS_TO_DOWNLOAD = 20000
 
 @Producer(ProducedLink)
 @GetterSetter(OneUnProcessedGroup)
@@ -79,6 +79,8 @@ def extract_next_links(rawDatas):
     outputLinks = list()
     for tuple in rawDatas:
         outputLinks.append(tuple[0])
+        print "This is the url count: ", url_count
+
     '''
     rawDatas is a list of tuples -> [(url1, raw_content1), (url2, raw_content2), ....]
     the return of this function should be a list of urls in their absolute form
@@ -100,6 +102,22 @@ def is_valid(url):
     parsed = urlparse(url)
     if parsed.scheme not in set(["http", "https"]):
         return False
+
+    # Trying to handle the dynamic PHP from the UCI calender
+    if "calandar" in parsed:
+        if "month" in parsed:
+            return False;
+        if "day" in parsed:
+            return False;
+        if "year" in parsed:
+            return False;
+
+        # This is some weird calender downloader with lots of options (this might not necessarily be a trap, but looks static... Look into it)
+        if "fromDate":
+            return False;
+
+    # For some reason, there is HTML in a url... Should crawl that
+
     try:
         return ".ics.uci.edu" in parsed.hostname \
             and not re.match(".*\.(css|js|bmp|gif|jpe?g|ico" + "|png|tiff?|mid|mp2|mp3|mp4"\
