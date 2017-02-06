@@ -112,11 +112,13 @@ def is_valid(url):
         if "year" in parsed:
             return False;
 
-        # This is some weird calender downloader with lots of options (this might not necessarily be a trap, but looks static... Look into it)
-        if "fromDate":
-            return False;
+        # Too much of the same stuff to crawl here.
+        #if "fromDate" in parsed:
+            #return False;
 
-    # For some reason, there is HTML in a url... Should crawl that
+        # Ignore anything with broken link tags left in the URL
+        if "<a>" or "<\a>" in parsed:
+            return False;
 
     try:
         return ".ics.uci.edu" in parsed.hostname \
