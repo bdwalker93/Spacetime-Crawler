@@ -127,7 +127,18 @@ def is_valid(url):
 
     # https://ganglia.ics.uci.edu/ (calendar, but not sure if hit)
     if "ganglia" in hostName:
+        print "Blocking:", hostName
         return False;
+
+    # https://grape.ics.uci.edu/wiki/public/
+    if "grape" in hostName:
+        if "public" in parsedQuerySearch:
+            print "Blocking:", hostName
+            return False;
+    # http://graphmod.ics.uci.edu/ (too many issues with traps and download errors)
+    if "graphmod" in hostName:
+        return False;
+
 
     try:
         return ".ics.uci.edu" in parsed.hostname \
