@@ -137,6 +137,7 @@ def is_valid(url):
             return False;
     # http://graphmod.ics.uci.edu/ (too many issues with traps and download errors)
     if "graphmod" in hostName:
+        print "Blocking:", hostName
         return False;
 
 
