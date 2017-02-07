@@ -8,10 +8,10 @@ from time import time
 
 try:
     # For python 2
-    from urlparse import urlparse, parse_qs
+    from urlparse import urlparse, parse_qs, urljoin
 except ImportError:
     # For python 3
-    from urllib.parse import urlparse, parse_qs
+    from urllib.parse import urlparse, parse_qs,  urljoin
 
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ LOG_HEADER = "[CRAWLER]"
 url_count = 0 if not os.path.exists("successful_urls.txt") else (len(open("successful_urls.txt").readlines()) - 1)
 if url_count < 0:
     url_count = 0
-MAX_LINKS_TO_DOWNLOAD = 200
+MAX_LINKS_TO_DOWNLOAD = 5
 
 @Producer(ProducedLink)
 @GetterSetter(OneUnProcessedGroup)
@@ -53,6 +53,7 @@ class CrawlerFrame(IApplication):
                 if is_valid(l) and robot_manager.Allowed(l, self.UserAgentString):
                     lObj = ProducedLink(l, self.UserAgentString)
                     self.frame.add(lObj)
+
         if url_count >= MAX_LINKS_TO_DOWNLOAD:
             self.done = True
 
@@ -66,9 +67,13 @@ def save_count(urls):
     with open("successful_urls.txt", "a") as surls:
         surls.write("\n".join(urls) + "\n")
 
+
 def process_url_group(group, useragentstr):
     rawDatas, successfull_urls = group.download(useragentstr, is_valid)
     save_count(successfull_urls)
+    # Metrics
+    print "This is the url count: ", url_count
+
     return extract_next_links(rawDatas)
     
 #######################################################################################
@@ -78,18 +83,25 @@ STUB FUNCTIONS TO BE FILLED OUT BY THE STUDENT.
 def extract_next_links(rawDatas):
     outputLinks = list()
     for tuple in rawDatas:
-        outputLinks.append(tuple[0])
-        print "This is the url count: ", url_count
 
-    '''
-    rawDatas is a list of tuples -> [(url1, raw_content1), (url2, raw_content2), ....]
-    the return of this function should be a list of urls in their absolute form
-    Validation of link via is_valid function is done later (see line 42).
-    It is not required to remove duplicates that have already been downloaded. 
-    The frontier takes care of that.
+        # The URL base path
+        basePath = tuple[0]
 
-    Suggested library: lxml
-    '''
+        # The content of the page
+        content = tuple[1]
+
+        # Loading the DOM
+        pageDom = html.fromstring(content)
+
+        # Extracting all of the links
+        for linkPath in pageDom.xpath('//a/@href'):
+
+            # absolutePath = urljoin(basePath, relativePath)
+            absoluteUrl =  urljoin(basePath, linkPath)
+
+            # Adding link to list
+            outputLinks.append(absoluteUrl)
+
     return outputLinks
 
 def is_valid(url):
@@ -115,30 +127,30 @@ def is_valid(url):
     # Trying to handle the dynamic PHP from the UCI calender
     if "calendar" in parsedQuerySearch:
         if "month" in parsedQuerySearch:
-            return False;
+            return False
         if "day" in parsedQuerySearch:
-            return False;
+            return False
         if "year" in parsedQuerySearch:
-            return False;
+            return False
 
         # Ignore anything with broken link tags left in the URL
         if "<a>" or "<\a>" in parsedQuerySearch:
-            return False;
+            return False
 
     # https://ganglia.ics.uci.edu/ (calendar, but not sure if hit)
     if "ganglia" in hostName:
         print "Blocking:", hostName
-        return False;
+        return False
 
     # https://grape.ics.uci.edu/wiki/public/
     if "grape" in hostName:
         if "public" in parsedQuerySearch:
             print "Blocking:", hostName
-            return False;
+            return False
     # http://graphmod.ics.uci.edu/ (too many issues with traps and download errors)
     if "graphmod" in hostName:
         print "Blocking:", hostName
-        return False;
+        return False
 
 
     try:
