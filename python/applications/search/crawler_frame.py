@@ -90,13 +90,11 @@ def extract_next_links(rawDatas):
         # The content of the page
         content = tuple[1]
 
-#need to add a check here to not get a XMLSyntaxError: None
-
         # Loading the DOM
         pageDom = html.fromstring(content)
 
         # Checks for the presence of a base tag
-        if not pageDom.xpath('//base/@href'):
+        if pageDom.xpath('//base/@href'):
             basePath = pageDom.xpath('//base/@href')[0]
 
         # Extracting all of the links
