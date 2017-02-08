@@ -5,6 +5,7 @@ from spacetime_local.declarations import Producer, GetterSetter, Getter
 from lxml import html,etree
 import re, os
 from time import time
+import StringIO
 
 try:
     # For python 2
@@ -20,6 +21,8 @@ url_count = (set()
     if not os.path.exists("successful_urls.txt") else 
     set([line.strip() for line in open("successful_urls.txt").readlines() if line.strip() != ""]))
 MAX_LINKS_TO_DOWNLOAD = 3000
+DEBUG = True
+DEBUG_VERBOSE = False
 
 @Producer(ProducedLink)
 @GetterSetter(OneUnProcessedGroup)
@@ -76,7 +79,9 @@ def process_url_group(group, useragentstr):
     save_count(successfull_urls)
 
     # Debug
-    print "This is the url count: ", url_count
+    if DEBUG:
+        print "This is the url count: ", len(url_count)
+
     return extract_next_links(rawDatas), rawDatas
     
 #######################################################################################
@@ -94,25 +99,41 @@ def extract_next_links(rawDatas):
         # The content of the page
         content = urlResponse.content
 
-        print content
-        # Loading the DOM
-        pageDom = html.fromstring(content)
+        # Stops us from trying parse pages with no content or an error
+        if not urlResponse.error_message or content:
 
-        # Checks for the presence of a base tag
-        if pageDom.xpath('//base/@href'):
-            basePath = pageDom.xpath('//base/@href')[0]
+            # Debug
+            if DEBUG_VERBOSE:
+                print "Error Message: ", urlResponse.error_message
+                print "Headers: ", urlResponse.headers
+                print "Is Redirected: ", urlResponse.is_redirected
+                print "Final URL: ", urlResponse.final_url
+                #print "Content: ", urlResponse.content, "-\n"
+                print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
-        # Extracting all of the links
-        for linkPath in pageDom.xpath('//a/@href'):
+            # Loading the DOM with etree
+            parser = etree.HTMLParser(recover=True)
+            pageDom = etree.parse(StringIO.StringIO(content), parser)
 
-            # absolutePath = urljoin(basePath, relativePath)
-            absoluteUrl =  urljoin(basePath, linkPath)
+            # Loading the DOM
+            #pageDom = html.fromstring(content)
 
-            # Adding link to list
-            outputLinks.append(absoluteUrl)
+            # Checks for the presence of a base tag
+            if pageDom.xpath('//base/@href'):
+                basePath = pageDom.xpath('//base/@href')[0]
+
+            # Extracting all of the links
+            for linkPath in pageDom.xpath('//a/@href'):
+
+                # absolutePath = urljoin(basePath, relativePath)
+                absoluteUrl =  urljoin(basePath, linkPath)
+
+                # Adding link to list
+                outputLinks.append(absoluteUrl)
 
     # Debug
-    print "List of found link: ", outputLinks
+    if DEBUG_VERBOSE:
+        print "List of found link: ", outputLinks
 
     '''
     rawDatas is a list of objs -> [raw_content_obj1, raw_content_obj2, ....]
@@ -148,6 +169,8 @@ def is_valid(url):
             return False
         if "year" in parsedQuerySearch:
             return False
+        if DEBUG:
+            print "Blocking:", hostName
 
         # Ignore anything with broken link tags left in the URL
         if "<a>" or "<\a>" in parsedQuerySearch:
@@ -155,17 +178,20 @@ def is_valid(url):
 
     # https://ganglia.ics.uci.edu/ (calendar, but not sure if hit)
     if "ganglia" in hostName:
-        print "Blocking:", hostName
+        if DEBUG:
+            print "Blocking:", hostName
         return False
 
     # https://grape.ics.uci.edu/wiki/public/
     if "grape" in hostName:
         if "public" in parsedQuerySearch:
-            print "Blocking:", hostName
+            if DEBUG:
+                print "Blocking:", hostName
             return False
     # http://graphmod.ics.uci.edu/ (too many issues with traps and download errors)
     if "graphmod" in hostName:
-        print "Blocking:", hostName
+        if DEBUG:
+            print "Blocking:", hostName
         return False
 
 
