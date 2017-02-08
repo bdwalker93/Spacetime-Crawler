@@ -2,7 +2,7 @@ import logging
 from datamodel.search.datamodel import ProducedLink, OneUnProcessedGroup, robot_manager
 from spacetime_local.IApplication import IApplication
 from spacetime_local.declarations import Producer, GetterSetter, Getter
-#from lxml import html,etree
+from lxml import html,etree
 import re, os
 from time import time
 
@@ -86,14 +86,15 @@ STUB FUNCTIONS TO BE FILLED OUT BY THE STUDENT.
 def extract_next_links(rawDatas):
     outputLinks = list()
 
-    for tuple in rawDatas:
+    for urlResponse in rawDatas:
 
         # The URL base path
-        basePath = tuple[0]
+        basePath = urlResponse.url
 
         # The content of the page
-        content = tuple[1]
+        content = urlResponse.content
 
+        print content
         # Loading the DOM
         pageDom = html.fromstring(content)
 
