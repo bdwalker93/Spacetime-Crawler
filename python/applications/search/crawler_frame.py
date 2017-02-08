@@ -108,29 +108,35 @@ def extract_next_links(rawDatas):
                 print "Headers: ", urlResponse.headers
                 print "Is Redirected: ", urlResponse.is_redirected
                 print "Final URL: ", urlResponse.final_url
-                #print "Content: ", urlResponse.content, "-\n"
+                print "Content: ", urlResponse.content, "-\n"
                 print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
-            # Loading the DOM with etree
-            parser = etree.HTMLParser(recover=True)
-            pageDom = etree.parse(StringIO.StringIO(content), parser)
+            try:
+                # Loading the DOM with etree
+                parser = etree.HTMLParser(recover=True)
+                pageDom = etree.parse(StringIO.StringIO(content), parser)
 
-            # Loading the DOM
-            #pageDom = html.fromstring(content)
+                # Checks for the presence of a base tag
+                if pageDom.xpath('//base/@href'):
+                    basePath = pageDom.xpath('//base/@href')[0]
 
-            # Checks for the presence of a base tag
-            if pageDom.xpath('//base/@href'):
-                basePath = pageDom.xpath('//base/@href')[0]
+                # Extracting all of the links
+                for linkPath in pageDom.xpath('//a/@href'):
 
-            # Extracting all of the links
-            for linkPath in pageDom.xpath('//a/@href'):
+                    # absolutePath = urljoin(basePath, relativePath)
+                    absoluteUrl = urljoin(basePath, linkPath)
 
-                # absolutePath = urljoin(basePath, relativePath)
-                absoluteUrl =  urljoin(basePath, linkPath)
+                    # Adding link to list
+                    outputLinks.append(absoluteUrl)
 
-                # Adding link to list
-                outputLinks.append(absoluteUrl)
-
+            except AssertionError as err:
+                # might want to set that built in bad within the url object here???
+                if DEBUG:
+                    print err.message
+        else:
+            #might want to set that built in bad within the url object here???
+            if DEBUG:
+                print "No content or an error code exists"
     # Debug
     if DEBUG_VERBOSE:
         print "List of found link: ", outputLinks
