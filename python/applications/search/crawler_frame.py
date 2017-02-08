@@ -24,6 +24,8 @@ MAX_LINKS_TO_DOWNLOAD = 3000
 DEBUG = True
 DEBUG_VERBOSE = False
 
+most_outlinks = (None, None)
+
 @Producer(ProducedLink)
 @GetterSetter(OneUnProcessedGroup)
 class CrawlerFrame(IApplication):
@@ -89,9 +91,12 @@ def process_url_group(group, useragentstr):
 STUB FUNCTIONS TO BE FILLED OUT BY THE STUDENT.
 '''
 def extract_next_links(rawDatas):
+    global most_outlinks
     outputLinks = list()
 
     for urlResponse in rawDatas:
+        outlinks = []
+
 
         # The URL base path
         basePath = urlResponse.url
@@ -127,7 +132,16 @@ def extract_next_links(rawDatas):
                     absoluteUrl = urljoin(basePath, linkPath)
 
                     # Adding link to list
-                    outputLinks.append(absoluteUrl)
+                    outlinks.append(absoluteUrl)
+
+                #If outlinks is currently empty then assign it new tuple
+                if most_outlinks[0] == None:
+                    most_outlinks = (basePath, len(outlinks))
+                #If the current tuples outlinks count is lower to current then replace
+                elif most_outlinks[1] < len(outlinks):
+                    most_outlinks = (basePath, len(outlinks))
+
+                outputLinks += outlinks
 
             except AssertionError as err:
                 # might want to set that built in bad within the url object here???
