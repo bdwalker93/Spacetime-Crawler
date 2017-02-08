@@ -203,7 +203,7 @@ def is_valid(url):
     # https://cbcl.ics.uci.edu/doku.php/start?do=login&sectok=6e0060616499c91512fcb5b63d90f778
     # Keeps getting called with different tokens (nothing really there to crawl anyways)
     if "cbcl" in hostName:
-        if "login" in parsedQuerySearch:
+        if "do" in parsedQuerySearch and "login" in parsedQuerySearch["do"]:
             if DEBUG:
                 print "Blocking:", hostName
             return False
