@@ -34,6 +34,7 @@ with open("bad_subdomains.txt", 'r') as f:
             bad_subdomains.append(line.split()[0])
 
 
+visited_subdomains = {}
 most_outlinks = (None, None)
 download_times = []
 invalidlinks = 0
@@ -109,7 +110,7 @@ def process_url_group(group, useragentstr):
 STUB FUNCTIONS TO BE FILLED OUT BY THE STUDENT.
 '''
 def extract_next_links(rawDatas):
-    global most_outlinks
+    global most_outlinks, visited_subdomains
     outputLinks = list()
 
     for urlResponse in rawDatas:
@@ -118,6 +119,11 @@ def extract_next_links(rawDatas):
 
         # The URL base path
         basePath = urlResponse.url
+
+        hostName = urlparse(basePath).hostname
+        if hostName not in visited_subdomains:
+            visited_subdomains[hostName] = set()
+
 
         # The content of the page
         content = urlResponse.content
@@ -151,6 +157,9 @@ def extract_next_links(rawDatas):
 
                     # Adding link to list
                     outlinks.append(absoluteUrl)
+                    hostName[hostName].add(absoluteUrl)
+
+
 
                 #If outlinks is currently empty then assign it new tuple
                 if most_outlinks[0] == None:
