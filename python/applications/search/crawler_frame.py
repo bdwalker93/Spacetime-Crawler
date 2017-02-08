@@ -22,7 +22,7 @@ url_count = (set()
     set([line.strip() for line in open("successful_urls.txt").readlines() if line.strip() != ""]))
 MAX_LINKS_TO_DOWNLOAD = 3000
 DEBUG = True
-DEBUG_VERBOSE = False
+DEBUG_VERBOSE = True
 
 @Producer(ProducedLink)
 @GetterSetter(OneUnProcessedGroup)
@@ -49,6 +49,7 @@ class CrawlerFrame(IApplication):
         self.frame.add(l)
 
     def update(self):
+        print "Hello", self.frame.get(OneUnProcessedGroup)
         for g in self.frame.get(OneUnProcessedGroup):
             print "Got a Group"
             outputLinks, urlResps = process_url_group(g, self.UserAgentString)
@@ -64,7 +65,7 @@ class CrawlerFrame(IApplication):
             self.done = True
 
     def shutdown(self):
-        print "downloaded ", url_count, " in ", time() - self.starttime, " seconds."
+        print "downloaded ", len(url_count), " in ", time() - self.starttime, " seconds."
         pass
 
 def save_count(urls):
