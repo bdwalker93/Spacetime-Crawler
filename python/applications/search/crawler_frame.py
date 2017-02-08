@@ -24,8 +24,19 @@ MAX_LINKS_TO_DOWNLOAD = 3000
 DEBUG = True
 DEBUG_VERBOSE = False
 
+#Read in the listed subdomains from bad_subdomains.txt
+bad_subdomains = []
+with open("bad_subdomains.txt", 'r') as f:
+    for line in f:
+        if line.startswith("#") or line in "\r\n":
+            continue
+        else:
+            bad_subdomains.append(line.split()[0])
+
+
 most_outlinks = (None, None)
 download_times = []
+invalidlinks = 0
 
 @Producer(ProducedLink)
 @GetterSetter(OneUnProcessedGroup)
@@ -175,6 +186,7 @@ def extract_next_links(rawDatas):
     return outputLinks
 
 def is_valid(url):
+    global invalidlinks, bad_subdomains
 
     # Parses URL
     parsed = urlparse(url)
@@ -186,50 +198,33 @@ def is_valid(url):
     hostName = parsed.hostname
 
     if parsed.scheme not in set(["http", "https"]):
+        invalidlinks += 1
         return False
 
-    # Trying to handle the dynamic PHP from the UCI calender
-    if "calendar" in hostName:
-        if "month" in parsedQuerySearch:
-            return False
-        if "day" in parsedQuerySearch:
-            return False
-        if "year" in parsedQuerySearch:
-            return False
-        if DEBUG:
-            print "Blocking:", hostName
-
-        # Ignore anything with broken link tags left in the URL
-        if "<a>" or "<\a>" in parsedQuerySearch:
-            return False
-
-    # https://ganglia.ics.uci.edu/ (calendar, but not sure if hit)
-    if "ganglia" in hostName:
-        if DEBUG:
-            print "Blocking:", hostName
+    # Ignore anything with broken link tags left in the URL
+    if "<a>" or "<\a>" in parsedQuerySearch:
+        invalidlinks += 1
         return False
 
-    # https://grape.ics.uci.edu/wiki/public/
-    if "grape" in hostName:
-        if "public" in parsedQuerySearch:
+    #If the hostname contains any of the known bad subdomains then we ignore
+    for subdomain in bad_subdomains:
+        if subdomain in hostName:
+            invalidlinks += 1
             if DEBUG:
-                print "Blocking:", hostName
+                print("Blocking: ", hostName)
             return False
-    # http://graphmod.ics.uci.edu/ (too many issues with traps and download errors)
-    if "graphmod" in hostName:
-        if DEBUG:
-            print "Blocking:", hostName
-        return False
 
     # https://cbcl.ics.uci.edu/doku.php/start?do=login&sectok=6e0060616499c91512fcb5b63d90f778
     # Keeps getting called with different tokens (nothing really there to crawl anyways)
     if "cbcl" in hostName:
         if "login" in parsedQuerySearch:
+            invalidlinks += 1
             if DEBUG:
                 print "Blocking:", hostName
             return False
 
 
+    #Possibly need to count this as a sign of invalid link
     try:
         return ".ics.uci.edu" in parsed.hostname \
             and not re.match(".*\.(css|js|bmp|gif|jpe?g|ico" + "|png|tiff?|mid|mp2|mp3|mp4"\
@@ -240,3 +235,5 @@ def is_valid(url):
 
     except TypeError:
         print ("TypeError for ", parsed)
+
+

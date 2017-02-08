@@ -1,0 +1,11 @@
+# http://graphmod.ics.uci.edu/ (too many issues with traps and download errors)
+graphmod
+
+# https://grape.ics.uci.edu/wiki/public/
+grape
+
+# https://ganglia.ics.uci.edu/ (calendar, but not sure if hit)
+ganglia
+
+# Trying to handle the dynamic PHP from the UCI calender
+calendar
