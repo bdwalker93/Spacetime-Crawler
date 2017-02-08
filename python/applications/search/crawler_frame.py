@@ -79,6 +79,23 @@ class CrawlerFrame(IApplication):
             self.done = True
 
     def shutdown(self):
+        with open("analytics.txt", 'w') as f:
+
+            #Writes to file all subdomains and the count for unique URL extracted
+            f.write("All subdomains visited and a count for every unique URL extracted\n")
+            for subdomain, urls in visited_subdomains:
+                f.write("\t" + str(subdomain) + ": " + len(urls) + "\n")
+
+            #Writes to file the number of invalid links the crawler has recieved
+            f.write("\nInvalid links received: " + str(invalidlinks) + "\n")
+
+            #Writes to file the page with most outlinks extracted
+            f.write("\n" + str(most_outlinks[0]) + " is page with most outlinks of " + str(most_outlinks[1]) + "\n")
+
+            #Writes to file the average download time per URL
+            f.write("\nAverage download time per URL: " + str(sum(download_times)/len(download_times)))
+
+
         print "downloaded ", url_count, " in ", time() - self.starttime, " seconds."
         pass
 
