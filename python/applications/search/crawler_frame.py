@@ -2,7 +2,7 @@ import logging
 from datamodel.search.datamodel import ProducedLink, OneUnProcessedGroup, robot_manager
 from spacetime_local.IApplication import IApplication
 from spacetime_local.declarations import Producer, GetterSetter, Getter
-from lxml import html,etree
+#from lxml import html,etree
 import re, os
 from time import time
 
@@ -16,10 +16,10 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 LOG_HEADER = "[CRAWLER]"
-url_count = 0 if not os.path.exists("successful_urls.txt") else (len(open("successful_urls.txt").readlines()) - 1)
-if url_count < 0:
-    url_count = 0
-MAX_LINKS_TO_DOWNLOAD = 30
+url_count = (set() 
+    if not os.path.exists("successful_urls.txt") else 
+    set([line.strip() for line in open("successful_urls.txt").readlines() if line.strip() != ""]))
+MAX_LINKS_TO_DOWNLOAD = 3000
 
 @Producer(ProducedLink)
 @GetterSetter(OneUnProcessedGroup)
@@ -36,7 +36,7 @@ class CrawlerFrame(IApplication):
         self.frame = frame
         assert(self.UserAgentString != None)
         assert(self.app_id != "")
-        if url_count >= MAX_LINKS_TO_DOWNLOAD:
+        if len(url_count) >= MAX_LINKS_TO_DOWNLOAD:
             self.done = True
 
     def initialize(self):
@@ -48,13 +48,16 @@ class CrawlerFrame(IApplication):
     def update(self):
         for g in self.frame.get(OneUnProcessedGroup):
             print "Got a Group"
-            outputLinks = process_url_group(g, self.UserAgentString)
+            outputLinks, urlResps = process_url_group(g, self.UserAgentString)
+            for urlResp in urlResps:
+                if urlResp.bad_url and self.UserAgentString not in set(urlResp.dataframe_obj.bad_url):
+                    urlResp.dataframe_obj.bad_url += [self.UserAgentString]
             for l in outputLinks:
                 if is_valid(l) and robot_manager.Allowed(l, self.UserAgentString):
                     lObj = ProducedLink(l, self.UserAgentString)
                     self.frame.add(lObj)
 
-        if url_count >= MAX_LINKS_TO_DOWNLOAD:
+        if len(url_count) >= MAX_LINKS_TO_DOWNLOAD:
             self.done = True
 
     def shutdown(self):
@@ -63,18 +66,18 @@ class CrawlerFrame(IApplication):
 
 def save_count(urls):
     global url_count
-    url_count += len(urls)
+    url_count.update(set(urls))
     with open("successful_urls.txt", "a") as surls:
-        surls.write("\n".join(urls) + "\n")
+        surls.write(("\n".join(urls) + "\n").encode("utf-8"))
 
 
 def process_url_group(group, useragentstr):
     rawDatas, successfull_urls = group.download(useragentstr, is_valid)
     save_count(successfull_urls)
+
     # Debug
     print "This is the url count: ", url_count
-
-    return extract_next_links(rawDatas)
+    return extract_next_links(rawDatas), rawDatas
     
 #######################################################################################
 '''
@@ -82,6 +85,7 @@ STUB FUNCTIONS TO BE FILLED OUT BY THE STUDENT.
 '''
 def extract_next_links(rawDatas):
     outputLinks = list()
+
     for tuple in rawDatas:
 
         # The URL base path
@@ -108,6 +112,17 @@ def extract_next_links(rawDatas):
 
     # Debug
     print "List of found link: ", outputLinks
+
+    '''
+    rawDatas is a list of objs -> [raw_content_obj1, raw_content_obj2, ....]
+    Each obj is of type UrlResponse  declared at L28-42 datamodel/search/datamodel.py
+    the return of this function should be a list of urls in their absolute form
+    Validation of link via is_valid function is done later (see line 42).
+    It is not required to remove duplicates that have already been downloaded. 
+    The frontier takes care of that.
+
+    Suggested library: lxml
+    '''
     return outputLinks
 
 def is_valid(url):
