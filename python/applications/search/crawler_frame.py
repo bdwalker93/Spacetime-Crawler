@@ -25,6 +25,7 @@ DEBUG = True
 DEBUG_VERBOSE = False
 
 most_outlinks = (None, None)
+download_times = []
 
 @Producer(ProducedLink)
 @GetterSetter(OneUnProcessedGroup)
@@ -77,7 +78,13 @@ def save_count(urls):
 
 
 def process_url_group(group, useragentstr):
+    #Assuming this is where the download per URL is occuring
+    global download_times
+    start = time()
     rawDatas, successfull_urls = group.download(useragentstr, is_valid)
+    end = time()
+    download_times.append(end-start)
+
     save_count(successfull_urls)
 
     # Debug
