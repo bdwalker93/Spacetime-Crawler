@@ -19,7 +19,7 @@ LOG_HEADER = "[CRAWLER]"
 url_count = 0 if not os.path.exists("successful_urls.txt") else (len(open("successful_urls.txt").readlines()) - 1)
 if url_count < 0:
     url_count = 0
-MAX_LINKS_TO_DOWNLOAD = 5
+MAX_LINKS_TO_DOWNLOAD = 30
 
 @Producer(ProducedLink)
 @GetterSetter(OneUnProcessedGroup)
@@ -71,7 +71,7 @@ def save_count(urls):
 def process_url_group(group, useragentstr):
     rawDatas, successfull_urls = group.download(useragentstr, is_valid)
     save_count(successfull_urls)
-    # Metrics
+    # Debug
     print "This is the url count: ", url_count
 
     return extract_next_links(rawDatas)
@@ -90,8 +90,14 @@ def extract_next_links(rawDatas):
         # The content of the page
         content = tuple[1]
 
+#need to add a check here to not get a XMLSyntaxError: None
+
         # Loading the DOM
         pageDom = html.fromstring(content)
+
+        # Checks for the presence of a base tag
+        if not pageDom.xpath('//base/@href'):
+            basePath = pageDom.xpath('//base/@href')[0]
 
         # Extracting all of the links
         for linkPath in pageDom.xpath('//a/@href'):
@@ -102,15 +108,11 @@ def extract_next_links(rawDatas):
             # Adding link to list
             outputLinks.append(absoluteUrl)
 
+    # Debug
+    print "List of found link: ", outputLinks
     return outputLinks
 
 def is_valid(url):
-    '''
-    Function returns True or False based on whether the url has to be downloaded or not.
-    Robot rules and duplication rules are checked separately.
-
-    This is a great place to filter out crawler traps.
-    '''
 
     # Parses URL
     parsed = urlparse(url)
