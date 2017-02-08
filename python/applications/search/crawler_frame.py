@@ -162,7 +162,7 @@ def is_valid(url):
         return False
 
     # Trying to handle the dynamic PHP from the UCI calender
-    if "calendar" in parsedQuerySearch:
+    if "calendar" in hostName:
         if "month" in parsedQuerySearch:
             return False
         if "day" in parsedQuerySearch:
@@ -193,6 +193,14 @@ def is_valid(url):
         if DEBUG:
             print "Blocking:", hostName
         return False
+
+    # https://cbcl.ics.uci.edu/doku.php/start?do=login&sectok=6e0060616499c91512fcb5b63d90f778
+    # Keeps getting called with different tokens (nothing really there to crawl anyways)
+    if "cbcl" in hostName:
+        if "login" in parsedQuerySearch:
+            if DEBUG:
+                print "Blocking:", hostName
+            return False
 
 
     try:
