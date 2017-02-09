@@ -166,7 +166,7 @@ def extract_next_links(rawDatas):
 
                     # Adding link to list
                     outlinks.append(absoluteUrl)
-                    hostName[hostName].add(absoluteUrl)
+                    visited_subdomains[hostName].add(absoluteUrl)
 
 
 
