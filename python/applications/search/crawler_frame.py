@@ -219,10 +219,11 @@ def is_valid(url):
         invalidlinks += 1
         return False
 
-    # Ignore anything with broken link tags left in the URL
-    if "<a>" or "<\a>" in parsedQuerySearch:
-        invalidlinks += 1
-        return False
+    #Cause of the issue
+    # # Ignore anything with broken link tags left in the URL
+    # if "<a>" or "<\a>" in parsedQuerySearch:
+    #     invalidlinks += 1
+    #     return False
 
     #If the hostname contains any of the known bad subdomains then we ignore
     for subdomain in bad_subdomains:
