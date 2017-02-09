@@ -25,15 +25,7 @@ DEBUG = True
 DEBUG_VERBOSE = False
 
 #Read in the listed subdomains from bad_subdomains.txt
-bad_subdomains = []
-with open("bad_subdomains.txt", 'r') as f:
-    for line in f:
-        if line.startswith("#") or line in "\r\n":
-            continue
-        else:
-            bad_subdomains.append(line.split()[0])
-
-
+bad_subdomains = ["graphmod.ics.uci.edu", "grape.ics.uci.edu", "ganglia.ics.uci.edu", "calendar.ics.uci.edu"]
 visited_subdomains = {}
 most_outlinks = (None, None)
 download_times = []
