@@ -22,7 +22,7 @@ url_count = (set()
     set([line.strip() for line in open("successful_urls.txt").readlines() if line.strip() != ""]))
 MAX_LINKS_TO_DOWNLOAD = 5
 DEBUG = True
-DEBUG_VERBOSE = False
+DEBUG_VERBOSE = True
 DEBUG_VERY_VERBOSE = False
 
 #Read in the listed subdomains from bad_subdomains.txt
@@ -75,8 +75,8 @@ class CrawlerFrame(IApplication):
 
             #Writes to file all subdomains and the count for unique URL extracted
             f.write("All subdomains visited and a count for every unique URL extracted\n")
-            for subdomain, urls in visited_subdomains:
-                f.write("\t" + str(subdomain) + ": " + len(urls) + "\n")
+            for subdomain, urls in visited_subdomains.items():
+                f.write("\t" + str(subdomain) + ": " + str(len(urls)) + "\n")
 
             #Writes to file the number of invalid links the crawler has recieved
             f.write("\nInvalid links received: " + str(invalidlinks) + "\n")
@@ -200,7 +200,7 @@ def extract_next_links(rawDatas):
 def is_valid(url):
     global invalidlinks
 
-    bad_subdomains = ["graphmod.ics.uci.edu", "grape.ics.uci.edu", "ganglia.ics.uci.edu", "calendar.ics.uci.edu"]
+    bad_subdomains = ["graphmod.ics.uci.edu", "grape.ics.uci.edu", "ganglia.ics.uci.edu"]
 
     # Parses URL
     parsed = urlparse(url)
@@ -210,6 +210,9 @@ def is_valid(url):
 
     #Gets the host name
     hostName = parsed.hostname
+
+    # Gets the path of the URL
+    path = parsed.path
 
     if parsed.scheme not in set(["http", "https"]):
         invalidlinks += 1
