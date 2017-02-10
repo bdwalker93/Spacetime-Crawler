@@ -28,7 +28,6 @@ DEBUG_VERY_VERBOSE = False
 #Read in the listed subdomains from bad_subdomains.txt
 visited_subdomains = {}
 most_outlinks = (None, None)
-download_times = []
 invalidlinks = 0
 
 @Producer(ProducedLink)
@@ -84,12 +83,8 @@ class CrawlerFrame(IApplication):
             #Writes to file the page with most outlinks extracted
             f.write("\n" + str(most_outlinks[0]) + " is page with most outlinks of " + str(most_outlinks[1]) + "\n")
 
-            #Writes to file the average download time per URL
-            f.write("\nAverage download time per URL: " + str(sum(download_times)/len(download_times)))
-
 
         print "downloaded ", len(url_count), " in ", time() - self.starttime, " seconds."
-        pass
 
 def save_count(urls):
     global url_count
@@ -99,12 +94,7 @@ def save_count(urls):
 
 
 def process_url_group(group, useragentstr):
-    #Assuming this is where the download per URL is occuring
-    global download_times
-    start = time()
     rawDatas, successfull_urls = group.download(useragentstr, is_valid)
-    end = time()
-    download_times.append(end-start)
 
     save_count(successfull_urls)
 
