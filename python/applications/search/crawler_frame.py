@@ -20,13 +20,12 @@ LOG_HEADER = "[CRAWLER]"
 url_count = (set() 
     if not os.path.exists("successful_urls.txt") else 
     set([line.strip() for line in open("successful_urls.txt").readlines() if line.strip() != ""]))
-MAX_LINKS_TO_DOWNLOAD = 3000
+MAX_LINKS_TO_DOWNLOAD = 5
 DEBUG = True
-DEBUG_VERBOSE = True
+DEBUG_VERBOSE = False
 DEBUG_VERY_VERBOSE = False
 
 #Read in the listed subdomains from bad_subdomains.txt
-bad_subdomains = ["graphmod.ics.uci.edu", "grape.ics.uci.edu", "ganglia.ics.uci.edu", "calendar.ics.uci.edu"]
 visited_subdomains = {}
 most_outlinks = (None, None)
 download_times = []
@@ -199,7 +198,9 @@ def extract_next_links(rawDatas):
     return outputLinks
 
 def is_valid(url):
-    global invalidlinks, bad_subdomains
+    global invalidlinks
+
+    bad_subdomains = ["graphmod.ics.uci.edu", "grape.ics.uci.edu", "ganglia.ics.uci.edu", "calendar.ics.uci.edu"]
 
     # Parses URL
     parsed = urlparse(url)
