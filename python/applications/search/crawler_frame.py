@@ -20,9 +20,9 @@ LOG_HEADER = "[CRAWLER]"
 url_count = (set() 
     if not os.path.exists("successful_urls.txt") else 
     set([line.strip() for line in open("successful_urls.txt").readlines() if line.strip() != ""]))
-MAX_LINKS_TO_DOWNLOAD = 5
+MAX_LINKS_TO_DOWNLOAD = 100
 DEBUG = True
-DEBUG_VERBOSE = True
+DEBUG_VERBOSE = False
 DEBUG_VERY_VERBOSE = False
 
 #Read in the listed subdomains from bad_subdomains.txt
@@ -258,16 +258,39 @@ def is_valid(url):
                 print "Blocking:", hostName
             return False
 
+    # http://archive.ics.uci.edu/ml/datasets.html?format=nonmat&task=&att=mix&area=game&numAtt=greater100&numIns=100to1000&type=other&sort=dateUp&view=table
+    # Edward Xia recommendation
+    if "archive" in hostName and "datasets.html" in path:
+        if parsedQuerySearch:
+            invalidlinks += 1
+            if DEBUG:
+                print "Blocking:", hostName
+            return False
+
     #Possibly need to count this as a sign of invalid link
+
+    # Another Edward Xia recommendation
     try:
-        return ".ics.uci.edu" in parsed.hostname \
-            and not re.match(".*\.(css|js|bmp|gif|jpe?g|ico" + "|png|tiff?|mid|mp2|mp3|mp4"\
+        if not re.search("\.ics\.uci\.edu\.?$", parsed.hostname) \
+            or re.match(".*\.(css|js|bmp|gif|jpe?g|ico" + "|png|tiff?|mid|mp2|mp3|mp4"\
             + "|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf" \
             + "|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso|epub|dll|cnf|tgz|sha1" \
             + "|thmx|mso|arff|rtf|jar|csv"\
-            + "|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
+            + "|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower()):
+            invalidlinks += 1
+            if DEBUG_VERY_VERBOSE:
+                print "ZZZZZ"
+                print "Blocking (File Types):", hostName
+                print "url: ", url
+                print "parsed: ", hostName, "***", not re.search("\.ics\.uci\.edu\.?$", parsed.hostname)
+                print "------"
+            return False
 
     except TypeError:
         print ("TypeError for ", parsed)
+        return False
 
 
+
+    # If nothing fails it must be true
+    return True
