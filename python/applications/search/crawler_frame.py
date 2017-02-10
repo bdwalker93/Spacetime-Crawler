@@ -23,6 +23,7 @@ url_count = (set()
 MAX_LINKS_TO_DOWNLOAD = 3000
 DEBUG = True
 DEBUG_VERBOSE = True
+DEBUG_VERY_VERBOSE = False
 
 @Producer(ProducedLink)
 @GetterSetter(OneUnProcessedGroup)
@@ -103,7 +104,7 @@ def extract_next_links(rawDatas):
         if not urlResponse.error_message or content:
 
             # Debug
-            if DEBUG_VERBOSE:
+            if DEBUG_VERY_VERBOSE:
                 print "Error Message: ", urlResponse.error_message
                 print "Headers: ", urlResponse.headers
                 print "Is Redirected: ", urlResponse.is_redirected
@@ -169,18 +170,15 @@ def is_valid(url):
 
     # Trying to handle the dynamic PHP from the UCI calender
     if "calendar" in hostName:
-        if "month" in parsedQuerySearch:
+        if "month" in parsedQuerySearch or "day" in parsedQuerySearch or "year" in parsedQuerySearch:
+            if DEBUG:
+                print "Blocking:", url
             return False
-        if "day" in parsedQuerySearch:
-            return False
-        if "year" in parsedQuerySearch:
-            return False
-        if DEBUG:
-            print "Blocking:", hostName
 
-        # Ignore anything with broken link tags left in the URL
-        if "<a>" or "<\a>" in parsedQuerySearch:
-            return False
+
+    # Ignore anything with broken link tags left in the URL
+    if "<a>" or "<\a>" in parsedQuerySearch:
+        return False
 
     # https://ganglia.ics.uci.edu/ (calendar, but not sure if hit)
     if "ganglia" in hostName:
@@ -208,6 +206,13 @@ def is_valid(url):
                 print "Blocking:", hostName
             return False
 
+    # https://duttgroup.ics.uci.edu/doku.php/drg101_admin?image=farewell.jpg&tab_details=view&do=media&tab_files=files&ns=presentations%3Aseminar
+    # Keeps coming up and we dont seem to have access to almost anything with media
+    if "duttgroup" in hostName:
+        if "do" in parsedQuerySearch and "media" in parsedQuerySearch["do"]:
+            if DEBUG:
+                print "Blocking:", hostName
+            return False
 
     try:
         return ".ics.uci.edu" in parsed.hostname \
