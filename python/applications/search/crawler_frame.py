@@ -200,7 +200,7 @@ def extract_next_links(rawDatas):
 def is_valid(url):
     global invalidlinks
 
-    bad_subdomains = ["graphmod.ics.uci.edu", "grape.ics.uci.edu", "ganglia.ics.uci.edu"]
+    bad_subdomains = ["graphmod", "grape", "ganglia"]
 
     # Parses URL
     parsed = urlparse(url)
@@ -218,7 +218,16 @@ def is_valid(url):
         invalidlinks += 1
         return False
 
-    # Trying to handle the dynamic PHP from the UCI calender
+
+    #If the hostname contains any of the known bad subdomains then we ignore
+    for subdomain in bad_subdomains:
+        if subdomain in hostName:
+            invalidlinks += 1
+            if DEBUG:
+                print("Blocking: ", hostName)
+            return False
+
+    # Trying to handle the dynamic PHP from the UCI calender (but dont want to block the events)
     if "calendar" in hostName:
         if "month" in parsedQuerySearch or "day" in parsedQuerySearch or "year" in parsedQuerySearch:
             if DEBUG:
@@ -230,14 +239,6 @@ def is_valid(url):
     if "<a>" in parsedQuerySearch or "<\a>" in parsedQuerySearch:
         invalidlinks += 1
         return False
-
-    #If the hostname contains any of the known bad subdomains then we ignore
-    for subdomain in bad_subdomains:
-        if subdomain in hostName:
-            invalidlinks += 1
-            if DEBUG:
-                print("Blocking: ", hostName)
-            return False
 
     # https://cbcl.ics.uci.edu/doku.php/start?do=login&sectok=6e0060616499c91512fcb5b63d90f778
     # Keeps getting called with different tokens (nothing really there to crawl anyways)
