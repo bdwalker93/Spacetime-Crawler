@@ -25,6 +25,13 @@ DEBUG = True
 DEBUG_VERBOSE = True
 DEBUG_VERY_VERBOSE = False
 
+#Read in the listed subdomains from bad_subdomains.txt
+bad_subdomains = ["graphmod.ics.uci.edu", "grape.ics.uci.edu", "ganglia.ics.uci.edu", "calendar.ics.uci.edu"]
+visited_subdomains = {}
+most_outlinks = (None, None)
+download_times = []
+invalidlinks = 0
+
 @Producer(ProducedLink)
 @GetterSetter(OneUnProcessedGroup)
 class CrawlerFrame(IApplication):
@@ -65,6 +72,23 @@ class CrawlerFrame(IApplication):
             self.done = True
 
     def shutdown(self):
+        with open("analytics.txt", 'w') as f:
+
+            #Writes to file all subdomains and the count for unique URL extracted
+            f.write("All subdomains visited and a count for every unique URL extracted\n")
+            for subdomain, urls in visited_subdomains:
+                f.write("\t" + str(subdomain) + ": " + len(urls) + "\n")
+
+            #Writes to file the number of invalid links the crawler has recieved
+            f.write("\nInvalid links received: " + str(invalidlinks) + "\n")
+
+            #Writes to file the page with most outlinks extracted
+            f.write("\n" + str(most_outlinks[0]) + " is page with most outlinks of " + str(most_outlinks[1]) + "\n")
+
+            #Writes to file the average download time per URL
+            f.write("\nAverage download time per URL: " + str(sum(download_times)/len(download_times)))
+
+
         print "downloaded ", len(url_count), " in ", time() - self.starttime, " seconds."
         pass
 
@@ -76,7 +100,13 @@ def save_count(urls):
 
 
 def process_url_group(group, useragentstr):
+    #Assuming this is where the download per URL is occuring
+    global download_times
+    start = time()
     rawDatas, successfull_urls = group.download(useragentstr, is_valid)
+    end = time()
+    download_times.append(end-start)
+
     save_count(successfull_urls)
 
     # Debug
@@ -90,12 +120,20 @@ def process_url_group(group, useragentstr):
 STUB FUNCTIONS TO BE FILLED OUT BY THE STUDENT.
 '''
 def extract_next_links(rawDatas):
+    global most_outlinks, visited_subdomains
     outputLinks = list()
 
     for urlResponse in rawDatas:
+        outlinks = []
+
 
         # The URL base path
         basePath = urlResponse.url
+
+        hostName = urlparse(basePath).hostname
+        if hostName not in visited_subdomains:
+            visited_subdomains[hostName] = set()
+
 
         # The content of the page
         content = urlResponse.content
@@ -128,7 +166,19 @@ def extract_next_links(rawDatas):
                     absoluteUrl = urljoin(basePath, linkPath)
 
                     # Adding link to list
-                    outputLinks.append(absoluteUrl)
+                    outlinks.append(absoluteUrl)
+                    visited_subdomains[hostName].add(absoluteUrl)
+
+
+
+                #If outlinks is currently empty then assign it new tuple
+                if most_outlinks[0] == None:
+                    most_outlinks = (basePath, len(outlinks))
+                #If the current tuples outlinks count is lower to current then replace
+                elif most_outlinks[1] < len(outlinks):
+                    most_outlinks = (basePath, len(outlinks))
+
+                outputLinks += outlinks
 
             except AssertionError as err:
                 # Setting this as a bad link
@@ -149,6 +199,7 @@ def extract_next_links(rawDatas):
     return outputLinks
 
 def is_valid(url):
+    global invalidlinks, bad_subdomains
 
     # Parses URL
     parsed = urlparse(url)
@@ -160,6 +211,7 @@ def is_valid(url):
     hostName = parsed.hostname
 
     if parsed.scheme not in set(["http", "https"]):
+        invalidlinks += 1
         return False
 
     # Trying to handle the dynamic PHP from the UCI calender
@@ -172,30 +224,22 @@ def is_valid(url):
 
     # Ignore anything with broken link tags left in the URL
     if "<a>" in parsedQuerySearch or "<\a>" in parsedQuerySearch:
+        invalidlinks += 1
         return False
 
-    # https://ganglia.ics.uci.edu/ (calendar, but not sure if hit)
-    if "ganglia" in hostName:
-        if DEBUG:
-            print "Blocking:", hostName
-        return False
-
-    # https://grape.ics.uci.edu/wiki/public/
-    if "grape" in hostName:
-        if "public" in parsedQuerySearch:
+    #If the hostname contains any of the known bad subdomains then we ignore
+    for subdomain in bad_subdomains:
+        if subdomain in hostName:
+            invalidlinks += 1
             if DEBUG:
-                print "Blocking:", hostName
+                print("Blocking: ", hostName)
             return False
-    # http://graphmod.ics.uci.edu/ (too many issues with traps and download errors)
-    if "graphmod" in hostName:
-        if DEBUG:
-            print "Blocking:", hostName
-        return False
 
     # https://cbcl.ics.uci.edu/doku.php/start?do=login&sectok=6e0060616499c91512fcb5b63d90f778
     # Keeps getting called with different tokens (nothing really there to crawl anyways)
     if "cbcl" in hostName:
         if "do" in parsedQuerySearch and "login" in parsedQuerySearch["do"]:
+            invalidlinks += 1
             if DEBUG:
                 print "Blocking:", hostName
             return False
@@ -204,10 +248,12 @@ def is_valid(url):
     # Keeps coming up and we dont seem to have access to almost anything with media
     if "duttgroup" in hostName:
         if "do" in parsedQuerySearch and "media" in parsedQuerySearch["do"]:
+            invalidlinks += 1
             if DEBUG:
                 print "Blocking:", hostName
             return False
 
+    #Possibly need to count this as a sign of invalid link
     try:
         return ".ics.uci.edu" in parsed.hostname \
             and not re.match(".*\.(css|js|bmp|gif|jpe?g|ico" + "|png|tiff?|mid|mp2|mp3|mp4"\
@@ -218,3 +264,5 @@ def is_valid(url):
 
     except TypeError:
         print ("TypeError for ", parsed)
+
+
