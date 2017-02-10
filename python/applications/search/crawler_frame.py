@@ -131,27 +131,21 @@ def extract_next_links(rawDatas):
                     outputLinks.append(absoluteUrl)
 
             except AssertionError as err:
+                # Setting this as a bad link
+                urlResponse.bad_url = True
+
                 # might want to set that built in bad within the url object here???
                 if DEBUG:
                     print err.message
         else:
-            #might want to set that built in bad within the url object here???
+            # Setting this as a bad link
+            urlResponse.bad_url = True
             if DEBUG:
                 print "No content or an error code exists"
     # Debug
     if DEBUG_VERBOSE:
         print "List of found link: ", outputLinks
 
-    '''
-    rawDatas is a list of objs -> [raw_content_obj1, raw_content_obj2, ....]
-    Each obj is of type UrlResponse  declared at L28-42 datamodel/search/datamodel.py
-    the return of this function should be a list of urls in their absolute form
-    Validation of link via is_valid function is done later (see line 42).
-    It is not required to remove duplicates that have already been downloaded. 
-    The frontier takes care of that.
-
-    Suggested library: lxml
-    '''
     return outputLinks
 
 def is_valid(url):
@@ -177,7 +171,7 @@ def is_valid(url):
 
 
     # Ignore anything with broken link tags left in the URL
-    if "<a>" or "<\a>" in parsedQuerySearch:
+    if "<a>" in parsedQuerySearch or "<\a>" in parsedQuerySearch:
         return False
 
     # https://ganglia.ics.uci.edu/ (calendar, but not sure if hit)
