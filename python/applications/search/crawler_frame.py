@@ -218,7 +218,6 @@ def is_valid(url):
         invalidlinks += 1
         return False
 
-
     #If the hostname contains any of the known bad subdomains then we ignore
     for subdomain in bad_subdomains:
         if subdomain in hostName:
