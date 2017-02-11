@@ -113,11 +113,11 @@ class Link(object):
     @first_detected_by.setter
     def first_detected_by(self, value): self._fdb = value
 
-    @dimension(str)
+    @dimension(int)
     def http_code(self): return self._http_code
 
     @http_code.setter
-    def http_code(self, value): self._http_code = str(value)
+    def http_code(self, value): self._http_code = int(value)
 
     @dimension(str)
     def error_reason(self): return self._error_reason
@@ -213,9 +213,9 @@ class Link(object):
         self.isprocessed = True
         self.downloaded_by = useragentstring
         url = self.full_url
-        if self.raw_content != None:
+        if self.raw_content != None and self.http_code < 500:
             print ("Downloading " + url + " from cache.")
-            return UrlResponse(self, url, self.raw_content, "", self.http_headers, self.is_redirected, self.final_url), True
+            return UrlResponse(self, url, self.raw_content, "", self.http_code, self.http_headers, self.is_redirected, self.final_url), True
         else:
             try:
                 print ("Downloading " + url + " from source.")
@@ -412,7 +412,10 @@ class OneUnProcessedGroup(object):
                     else:
                         l.marked_invalid_by += ["Robot Rule"]
                 else:
-                    l.marked_invalid_by += [UserAgentString]
+                    if UserAgentString not in set(l.marked_invalid_by):
+                        l.marked_invalid_by += [UserAgentString]
+                    if UserAgentString not in set(l.bad_url):
+                        l.bad_url += [UserAgentString]
             return result, success_urls
         except AttributeError:
             return list(), list()

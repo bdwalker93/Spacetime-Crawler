@@ -41,7 +41,6 @@ class CrawlerFrame(IApplication):
         # Set user agent string to IR W17 UnderGrad <student_id1>, <student_id2> ...
         # If Graduate studetn, change the UnderGrad part to Grad.
         self.UserAgentString = "IR W17 Undergrad 75806831, 23663450, 31646543"
-		
         self.frame = frame
         assert(self.UserAgentString != None)
         assert(self.app_id != "")
@@ -83,14 +82,16 @@ class CrawlerFrame(IApplication):
             #Writes to file the page with most outlinks extracted
             f.write("\n" + str(most_outlinks[0]) + " is page with most outlinks of " + str(most_outlinks[1]) + "\n")
 
-
         print "downloaded ", len(url_count), " in ", time() - self.starttime, " seconds."
+        pass
 
 def save_count(urls):
     global url_count
-    url_count.update(set(urls))
-    with open("successful_urls.txt", "a") as surls:
-        surls.write(("\n".join(urls) + "\n").encode("utf-8"))
+    urls = set(urls).difference(url_count)
+    url_count.update(urls)
+    if len(urls):
+        with open("successful_urls.txt", "a") as surls:
+            surls.write(("\n".join(urls) + "\n").encode("utf-8"))
 
 
 def process_url_group(group, useragentstr):
