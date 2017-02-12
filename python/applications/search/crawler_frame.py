@@ -3,7 +3,7 @@ from datamodel.search.datamodel import ProducedLink, OneUnProcessedGroup, robot_
 from spacetime_local.IApplication import IApplication
 from spacetime_local.declarations import Producer, GetterSetter, Getter
 from lxml import html,etree
-import re, os
+import re, os, sys
 from time import time
 import StringIO
 
@@ -25,9 +25,45 @@ DEBUG = True
 DEBUG_VERBOSE = False
 DEBUG_VERY_VERBOSE = False
 
-#Read in the listed subdomains from bad_subdomains.txt
 visited_subdomains = {}
-most_outlinks = (None, None)
+most_outlinks = ("None", 0)
+#Absolute path to location of analytics_data.txt
+fpath_analytics_data = os.path.join(sys.path[0], "analytics_data.txt")
+#Absolute path to location of analytics.txt
+fpath_finalAnalytics = os.path.join(sys.path[0], "analytics.txt")
+
+#Will update analytics_data.txt
+def updateAnalyticsFile():
+    with open(fpath_analytics_data, "w") as f:
+        f.write(str(invalidlinks) + "\n")
+        f.write(most_outlinks[0] + " " + str(most_outlinks[1]) + "\n")
+        for subdomain, urls in visited_subdomains.items():
+            f.write(subdomain)
+            for url in urls:
+                f.write(" " + url)
+            f.write("\n")
+
+
+#If successfull_url count is 0 then we intialize analytics_data.txt with empty values
+if len(url_count) == 0:
+    updateAnalyticsFile()
+else: #Else read in the saved analytics data
+    try:
+        with open(fpath_analytics_data, "r") as f:
+            invalidlinks = int(f.readline().rstrip())
+
+            line = f.readline().rstrip().split()
+            most_outlinks = (line[0], int(line[1]))
+
+            for line in f:
+                split_line = line.rstrip().split()
+                subdomain = split_line[0]
+                urls = split_line[1:]
+                visited_subdomains[subdomain] = urls
+    except Exception:
+        print("Need to ensure on first run that \"succesfull_url.txt\" is empty to initialize analytics with fresh file")
+
+
 
 
 @Producer(ProducedLink)
@@ -69,7 +105,7 @@ class CrawlerFrame(IApplication):
             self.done = True
 
     def shutdown(self):
-        with open("analytics.txt", 'w') as f:
+        with open(fpath_finalAnalytics, 'w') as f:
 
             #Writes to file all subdomains and the count for unique URL extracted
             f.write("All subdomains visited and a count for every unique URL extracted\n")
@@ -98,6 +134,7 @@ def process_url_group(group, useragentstr):
     rawDatas, successfull_urls = group.download(useragentstr, is_valid)
 
     save_count(successfull_urls)
+    updateAnalyticsFile()
 
     # Debug
     if DEBUG:
@@ -162,7 +199,7 @@ def extract_next_links(rawDatas):
 
 
                 #If outlinks is currently empty then assign it new tuple
-                if most_outlinks[0] == None:
+                if most_outlinks[0] == "None":
                     most_outlinks = (basePath, len(outlinks))
                 #If the current tuples outlinks count is lower to current then replace
                 elif most_outlinks[1] < len(outlinks):
