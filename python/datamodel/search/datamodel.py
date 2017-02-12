@@ -24,6 +24,7 @@ except ImportError:
 from datamodel.search.Robot import Robot
 
 robot_manager = Robot()
+invalidlinks = 0
 
 class UrlResponse(object):
     def __init__(self, dataframe_obj, url, content, error_message, http_code, headers, is_redirected, final_url = None):
@@ -394,6 +395,7 @@ class OneUnProcessedGroup(object):
         return upl.underprocess <= 10
 
     def download(self, UserAgentString, is_valid, timeout = 2, MaxPageSize = 1048576, MaxRetryDownloadOnFail = 5, retry_count = 0):
+        global invalidlinks
         try:
             success_urls = list()
             result = list()
@@ -412,6 +414,7 @@ class OneUnProcessedGroup(object):
                     else:
                         l.marked_invalid_by += ["Robot Rule"]
                 else:
+                    invalidlinks += 1
                     if UserAgentString not in set(l.marked_invalid_by):
                         l.marked_invalid_by += [UserAgentString]
                     if UserAgentString not in set(l.bad_url):

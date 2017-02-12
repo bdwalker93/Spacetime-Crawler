@@ -1,5 +1,5 @@
 import logging
-from datamodel.search.datamodel import ProducedLink, OneUnProcessedGroup, robot_manager
+from datamodel.search.datamodel import ProducedLink, OneUnProcessedGroup, robot_manager, invalidlinks
 from spacetime_local.IApplication import IApplication
 from spacetime_local.declarations import Producer, GetterSetter, Getter
 from lxml import html,etree
@@ -28,7 +28,7 @@ DEBUG_VERY_VERBOSE = False
 #Read in the listed subdomains from bad_subdomains.txt
 visited_subdomains = {}
 most_outlinks = (None, None)
-invalidlinks = 0
+
 
 @Producer(ProducedLink)
 @GetterSetter(OneUnProcessedGroup)
