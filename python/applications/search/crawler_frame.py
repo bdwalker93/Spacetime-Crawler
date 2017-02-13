@@ -20,7 +20,7 @@ LOG_HEADER = "[CRAWLER]"
 url_count = (set() 
     if not os.path.exists("successful_urls.txt") else 
     set([line.strip() for line in open("successful_urls.txt").readlines() if line.strip() != ""]))
-MAX_LINKS_TO_DOWNLOAD = 100
+MAX_LINKS_TO_DOWNLOAD = 3000
 DEBUG = True
 DEBUG_VERBOSE = False
 DEBUG_VERY_VERBOSE = False
@@ -58,7 +58,7 @@ else: #Else read in the saved analytics data
             for line in f:
                 split_line = line.rstrip().split()
                 subdomain = split_line[0]
-                urls = split_line[1:]
+                urls = set(split_line[1:])
                 visited_subdomains[subdomain] = urls
     except Exception:
         print("Need to ensure on first run that \"succesfull_url.txt\" is empty to initialize analytics with fresh file")
