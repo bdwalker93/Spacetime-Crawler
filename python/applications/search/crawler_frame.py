@@ -7,6 +7,9 @@ import re, os, sys
 from time import time
 import StringIO
 
+# PY 2.7 fix
+from codecs import open
+
 try:
     # For python 2
     from urlparse import urlparse, parse_qs, urljoin
@@ -20,7 +23,7 @@ LOG_HEADER = "[CRAWLER]"
 url_count = (set() 
     if not os.path.exists("successful_urls.txt") else 
     set([line.strip() for line in open("successful_urls.txt").readlines() if line.strip() != ""]))
-MAX_LINKS_TO_DOWNLOAD = 3000
+MAX_LINKS_TO_DOWNLOAD = 500
 DEBUG = True
 DEBUG_VERBOSE = False
 DEBUG_VERY_VERBOSE = False
@@ -34,7 +37,7 @@ fpath_finalAnalytics = os.path.join(sys.path[0], "analytics.txt")
 
 #Will update analytics_data.txt
 def updateAnalyticsFile():
-    with open(fpath_analytics_data, "w") as f:
+    with open(fpath_analytics_data, mode="w", encoding="utf-8") as f:
         f.write(str(invalidlinks) + "\n")
         f.write(most_outlinks[0] + " " + str(most_outlinks[1]) + "\n")
         for subdomain, urls in visited_subdomains.items():
@@ -49,7 +52,7 @@ if len(url_count) == 0:
     updateAnalyticsFile()
 else: #Else read in the saved analytics data
     try:
-        with open(fpath_analytics_data, "r") as f:
+        with open(fpath_analytics_data,  mode="r", encoding="utf-8") as f:
             invalidlinks = int(f.readline().rstrip())
 
             line = f.readline().rstrip().split()
@@ -293,6 +296,14 @@ def is_valid(url):
             if DEBUG:
                 print "Blocking:", hostName
             return False
+
+    # Failing anything with a replytocom params. Lots of unnecessary dups from this.
+    if "replytocom" in parsedQuerySearch:
+        invalidlinks += 1
+        if DEBUG:
+            print "Blocking:", hostName, " - Because of: ", path
+            print "Blocking:", url
+        return False
 
     #Possibly need to count this as a sign of invalid link
 
