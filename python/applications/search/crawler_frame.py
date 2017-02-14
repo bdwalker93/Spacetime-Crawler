@@ -23,7 +23,7 @@ LOG_HEADER = "[CRAWLER]"
 url_count = (set() 
     if not os.path.exists("successful_urls.txt") else 
     set([line.strip() for line in open("successful_urls.txt").readlines() if line.strip() != ""]))
-MAX_LINKS_TO_DOWNLOAD = 500
+MAX_LINKS_TO_DOWNLOAD = 3000
 DEBUG = True
 DEBUG_VERBOSE = False
 DEBUG_VERY_VERBOSE = False
@@ -259,7 +259,7 @@ def is_valid(url):
 
     # Trying to handle the dynamic PHP from the UCI calender (but dont want to block the events)
     if "calendar" in hostName:
-        if "month" in parsedQuerySearch or "day" in parsedQuerySearch or "year" in parsedQuerySearch:
+        if "month" in parsedQuerySearch or "day" in parsedQuerySearch or "year" in parsedQuerySearch or "calendar" in parsedQuerySearch :
             if DEBUG:
                 print "Blocking:", url
             return False
@@ -301,8 +301,7 @@ def is_valid(url):
     if "replytocom" in parsedQuerySearch:
         invalidlinks += 1
         if DEBUG:
-            print "Blocking:", hostName, " - Because of: ", path
-            print "Blocking:", url
+            print "Blocking:", hostName, " - Because of: ", parsedQuerySearch
         return False
 
     #Possibly need to count this as a sign of invalid link
