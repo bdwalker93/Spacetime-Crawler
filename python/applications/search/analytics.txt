@@ -1,0 +1,62 @@
+All subdomains visited and a count for every unique URL extracted
+	chime.ics.uci.edu: 0
+	http://www.ics.uci.edu/~bic/os/GIF/10-12.gif: 213
+	woda15.ics.uci.edu: 0
+	archive.ics.uci.edu: 765
+	www-db.ics.uci.edu: 36
+	flamingo.ics.uci.edu: 54
+	ironwood.ics.uci.edu: 42
+	cert.ics.uci.edu: 39
+	rotterdam.ics.uci.edu: 0
+	duke.ics.uci.edu: 0
+	emj.ics.uci.edu: 211
+	lolth.ics.uci.edu: 0
+	brodbeck@ics.uci.edu: 1421
+	sli.ics.uci.edu: 205
+	fano.ics.uci.edu: 1278
+	ngs.ics.uci.edu: 244
+	mondego.ics.uci.edu: 156
+	sconce.ics.uci.edu: 28
+	evoke.ics.uci.edu: 317
+	jgarcia.ics.uci.edu: 48
+	xtune.ics.uci.edu: 20
+	isg.ics.uci.edu: 165
+	graphics.ics.uci.edu: 204
+	mhcid.ics.uci.edu: 66
+	<LI><A: 1379
+	johnson.html: 371
+	students.ics.uci.edu: 0
+	radicle.ics.uci.edu: 0
+	sridhar.iyengar@mv.unisys.com: 1961
+	fr.ics.uci.edu: 57
+	cloudberry.ics.uci.edu: 18
+	psearch.ics.uci.edu: 13
+	www.graphics.ics.uci.edu: 0
+	mlearn.ics.uci.edu: 113
+	computableplant.ics.uci.edu: 232
+	tps.ics.uci.edu: 0
+	hobbes.ics.uci.edu: 43
+	seal.ics.uci.edu: 137
+	sdcl.ics.uci.edu: 82
+	sourcerer.ics.uci.edu: 6
+	www.ics.uci.edu: 3088
+	dynamo.ics.uci.edu: 0
+	esl.ics.uci.edu: 0
+	sprout.ics.uci.edu: 0
+	http://www.ics.uci.edu/~bic/os/GIF/3-6.gif: 403
+	https://eee.uci.edu/toolbox/dropbox/index.php?op=openfolder&folder=354509: 0
+	dataguard.ics.uci.edu: 12
+	cml.ics.uci.edu: 21
+	cbcl.ics.uci.edu: 0
+	vision.ics.uci.edu: 326
+	http://www.ics.uci.edu/LN.html: 2579
+	duttgroup.ics.uci.edu: 31
+	mailto:%20ihler@ics.uci.edu: 1496
+	testlab.ics.uci.edu: 0
+	vid.ics.uci.edu: 127
+	http://www.ugcs.caltech.edu/~eppstein/home/home.html: 1472
+	hombao.ics.uci.edu: 15
+
+Invalid links received: 36231
+
+http://fano.ics.uci.edu/cites/Organization is page with most outlinks of 929
