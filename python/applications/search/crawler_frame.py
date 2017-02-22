@@ -93,7 +93,7 @@ class CrawlerFrame(IApplication):
         self.frame.add(l)
 
     def update(self):
-        for g in self.frame.get(OneUnProcessedGroup):
+        for g in self.frame.get_new(OneUnProcessedGroup):
             print "Got a Group"
             outputLinks, urlResps = process_url_group(g, self.UserAgentString)
             for urlResp in urlResps:
